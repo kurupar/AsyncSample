@@ -9,6 +9,11 @@ import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -154,8 +159,49 @@ public class WeatherInfoActivity extends AppCompatActivity {
             String urlStr = "http://weather.livedoor.com/forecast/webservice/json/v1?city=" + id;
             //  天気情報サービスから取得したJSON文字列。天気情報が格納されている。
             String result = "";
-            //  ここに上記URLに接続してJSON文字列を取得する処理を記述。
+            //  HTTP接続を行うHttpURLConnectionオブジェクトを宣言。finallyで確実に解放するためにtry外で宣言。
+            HttpURLConnection con = null;
+            //  HTTP接続のレスポンスデータとして取得するInputStreamオブジェクトを宣言。同じくtry外で宣言。
+            InputStream is = null;
+            try{
+                //  URLオブジェクト生成。
+                URL url = new URL(urlStr);
+                //  URLオブジェクトからHttpURLConnectionオブジェクトを取得。
+                con = (HttpURLConnection) url.openConnection();
+                //  HTTP接続メソッドを設定。
+                con.setRequestMethod("GET");
+                //  接続
+                con.connect();
+                //  HttpURLConnectionオブジェクトからレスポンスデータを取得。
+                is = con.getInputStream();
+                //  レスポンスデータであるInputStreamオブジェクトを文字列に変換。
+                result = is2String(is);
+            }
+            //  例外処理
+            catch (MalformedURLException ex){
 
+            }
+            catch (IOException ex){
+
+            }
+            //  後処理
+            finally {
+                //  HttpURLConnectionオブジェクトがnullでないなら解放。
+                if(con != null){
+                    con.disconnect();
+                }
+                //  InputStreamオブジェクトがnullでないなら解放
+                if(is != null){
+                    try{
+                        is.close();
+                    }
+                    //  例外処理
+                    catch (IOException ex){
+
+                    }
+                }
+
+            }
             return result;
         }
 
