@@ -9,8 +9,14 @@ import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -211,7 +217,25 @@ public class WeatherInfoActivity extends AppCompatActivity {
             String telop = "";
             String desc = "";
 
-            //  ここに天気情報JSON文字列を解析する処理を記述。
+            try{
+                //  JSON文字列からJSONObjectオブジェクトを生成。これをルートJSONオブジェクトとする。
+                JSONObject rootJSON = new JSONObject(result);
+                //  ルートJSON直下の「description」JSONオブジェクトを取得。
+                JSONObject descriptionJSON = rootJSON.getJSONObject("description");
+                //  「description」プロパティ直下の「text]文字列（天気概況文）を取得。
+                desc = descriptionJSON.getString("text");
+                //  ルートJSON直下の「forecasts」JSON文字列を取得。
+                JSONArray forecasts = rootJSON.getJSONArray("forecasts");
+                //  「forecasts」JSON配列の１つ目（インデックス０）のJSONオブジェクトを取得。
+                JSONObject forecastNow = forecasts.getJSONObject(0);
+                //  「forecasts」１つ目のJSONオブジェクトから「telop」文字列（天気）を取得。
+                telop = forecastNow.getString("telop");
+
+            }
+            //例外処理
+            catch(JSONException ex){
+
+            }
 
             //天気情報よう文字列をTextViewにセット。
             _tvWeatherTelop.setText(telop);
@@ -219,6 +243,23 @@ public class WeatherInfoActivity extends AppCompatActivity {
 
         }
 
+        /**
+         * InputStreamオブジェクトを文字列に変換するメソッド
+         * @param is
+         * @return
+         * @throws IOException
+         */
+        private String is2String(InputStream is) throws IOException {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is,"UTF-8"));
+            StringBuffer sb = new StringBuffer();
+            char[] b = new char[1024];
+            int line;
+            while(0 <= (line = reader.read(b))){
+                sb.append(b,0,line);
+            }
+
+            return sb.toString();
+        }
     }
 
 }
